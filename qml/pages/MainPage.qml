@@ -48,11 +48,23 @@ Page {
         text: qsTr("About SailBabel")
         onClicked: pageStack.push(Qt.resolvedUrl("About.qml"))
       }
+            RemorsePopup { id: remorse_erase }
       MenuItem {
-        text: qsTr("Change dictionary")
+                text: qsTr("Erase Dictionary")
+                onClicked: remorse_erase.execute(qsTr("Erasing database"),
+                                                 function() {
+                                                     dictionary.clear()
+                                                     dictionaries.clear()
+                                                     queryFieldText=""
+                                                     eraseDB()
+                                                 })
+            }
+            MenuItem {
+                text: qsTr("Import Dictionary")
         onClicked: {
             pageStack.push(Qt.resolvedUrl("ChooseDictionary.qml"))
-            resultsListModel.clear()
+                    dictionary.clear()
+                    dictionaries.clear()
             queryFieldText=""
         }
       }
@@ -66,7 +78,18 @@ Page {
         width: main_page.width
         PageHeader {
           id: pageHeader
-          title: qsTr("Dictionary")
+                    title: pageTitle
+                }
+                ComboBox {
+                    id: langId
+                    width: main_page.width
+                    label: "Language"
+
+                    menu: ContextMenu {
+                        MenuItem { text: "EN-ES" }
+                        MenuItem { text: "ES-EN" }
+                        MenuItem { text: "IT-EN" }
+                    }
         }
         TextField {
           id: queryField
@@ -76,23 +99,22 @@ Page {
           focus: true
           placeholderText: qsTr("Word or phrase")
           inputMethodHints: Qt.ImhNoAutoUppercase
-          EnterKey.enabled: text.length>0
+                    //EnterKey.enabled: text.length>0
           EnterKey.onClicked: {
             queryFieldText=text.replace(/\s\s*/g," ").replace(/^\s*/g,"").replace(/\s*$/g,"")
+                        if (queryFieldText){
             if (searchHistoryListModel.count===0 ||
                 searchHistoryListModel.get(0).query!=text)
               searchHistoryListModel.insert(0, { query: text })
-            resultsListModel.clear()
-            var trans=dictionary.translateAtoB(text)
-            for (var i in trans)
-              resultsListModel.append({ lang1: trans[i][0], lang2: trans[i][1] })
-            if (trans.length>0)
-              resultsListModel.append({ lang1: "", lang2: ""})
-            var trans=dictionary.translateBtoA(text)
-            for (var i in trans)
-              resultsListModel.append({ lang1: trans[i][0], lang2: trans[i][1] })
+                            dictionary.search(langId.value,queryFieldText)
+                        } else { // no query
+                            dictionary.clear()
+                        }
           }
         }
+                onActiveFocusChanged: {
+                    console.log("focus")
+                }
         Text {
           id: no_results
           anchors.top: queryField.bottom
@@ -102,27 +124,27 @@ Page {
           font.italic: true
           font.pointSize: Theme.fontSizeSmall
           color: Theme.highlightColor
-          visible: resultsListModel.count==0 && queryFieldText!=""
+                    visible: dictionary.count==0 && queryFieldText!=""
         }
       }
     }
 
     header: hearderComponent
 
-    model: resultsListModel
+        model :dictionary
 
     delegate: ListItem {
       width: main_page.width
       contentHeight: textLang1.height+textLang2.height+Theme.paddingLarge+Theme.paddingSmall
       menu: contextMenu
-      showMenuOnPressAndHold: !(lang1=="" && lang2=="")
+            showMenuOnPressAndHold: !(definition1=="" && definition2=="")
       Item {
         id: item
         height: textLang1.height+textLang2.height+Theme.paddingLarge
         width: parent.width
         Label {
           id: textLang1
-          text: lang1
+                    text: definition1
           x: Theme.horizontalPageMargin
           width: parent.width-2*x
           anchors.top: item.top
@@ -131,7 +153,7 @@ Page {
         }
         Label {
           id: textLang2
-          text: lang2
+                    text: definition2
           x: Theme.horizontalPageMargin
           width: parent.width-2*x
           anchors.top: textLang1.bottom
@@ -148,13 +170,13 @@ Page {
             height: fullTextLang1.height
             TextArea {
               id: fullTextLang1
-              text: lang1
+                            text: definition1
               width: Screen.sizeCategory>=Screen.Large ? parent.width-Theme.iconSizeMedium-Theme.paddingMedium :  parent.width-Theme.iconSizeSmall-Theme.paddingMedium
               readOnly: true
               wrapMode: TextEdit.Wrap
               labelVisible: false
               onClicked: {
-                Clipboard.text=lang1
+                                Clipboard.text=definition1
                 selectAll()
                 fullTextLang2.deselect()
                 clipboard1.visible=true
@@ -178,14 +200,14 @@ Page {
             height: fullTextLang2.height
             TextArea {
               id: fullTextLang2
-              text: lang2
+                            text: definition2
               width: Screen.sizeCategory>=Screen.Large ? parent.width-Theme.iconSizeMedium-Theme.paddingMedium :  parent.width-Theme.iconSizeSmall-Theme.paddingMedium
               readOnly: true
               wrapMode: TextEdit.Wrap
               color: Theme.highlightColor
               labelVisible: false
               onClicked: {
-                Clipboard.text=lang2
+                                Clipboard.text=definition2
                 selectAll()
                 fullTextLang1.deselect()
                 clipboard1.visible=false
@@ -207,7 +229,14 @@ Page {
         }
       }
     }
-
   }
 
+    property string pageTitle: ""
+
+    function eraseDB(){
+        dictionary.eraseDB("ES-EN");  //TODO
+//        dictionary.initDB("ES-EN"); //TODO
+        dictionary.clear()
+        pageTitle="No dictionary loaded"
+    }
 }

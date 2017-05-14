@@ -15,6 +15,8 @@ TARGET = harbour-sailbabel
 CONFIG += c++11
 CONFIG += sailfishapp
 
+QT +=sql
+
 QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += src/harbour-sailbabel.cpp \

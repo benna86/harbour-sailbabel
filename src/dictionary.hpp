@@ -9,44 +9,70 @@
 #include <QVector>
 #include <QMultiHash>
 #include <QVariantList>
+#include <QSqlQueryModel>
+#include <QSqlRecord>
+#include <QSqlQuery>
+#include <QSqlError>
 
 class dictionary;
 class dictionaryloader;
+void my_prepare(QSqlQuery &q, QString s);
+void my_exec(QSqlQuery &q);
 
-class dictionary : public QObject {
+class dictionary : public QSqlQueryModel {
   Q_OBJECT
   QVector<QByteArray> dict_A;
   QVector<QByteArray> dict_B;
   QMultiHash<QByteArray, int> map_A;
   QMultiHash<QByteArray, int> map_B;
+  int dicSize;
+  int dicProgress;
   int max_num_results=200;
-  mutable QMutex mutex;
-
   friend class dictionaryloader;
+  QHash<int,QByteArray> *_roleNames;
 
 public:
   Q_PROPERTY(int size READ size NOTIFY sizeChanged)
-  explicit dictionary(QObject *parent = 0);
-  Q_PROPERTY(bool dictionaryLoaded READ dictEmpty NOTIFY dictChanged)
+  Q_PROPERTY(int progress READ progress NOTIFY sizeChanged)
+  Q_PROPERTY(QStringList langs READ getLangs NOTIFY sizeChanged)
+  explicit dictionary(QSqlQueryModel *parent = 0);
 private:
   QString purify(const QString &entry) const;
+  void generateQuery(QMultiHash<QByteArray, int> map,QSqlQuery q_ins_word,QSqlQuery q_ins_occ,QString lang,QString langFrom, QString langTo);
+  void updateMap(QMultiHash<QByteArray, int> &map,QString entry,int def_id);
+  QSqlDatabase db;
 public:
   Q_INVOKABLE void read(const QString &filename);
+  Q_INVOKABLE void eraseDB(QString dbname);
+  Q_INVOKABLE void initDB(QString dbname);
+  Q_INVOKABLE void clear(){this->setQuery("select * from words where id=-1");}
+  Q_INVOKABLE void search(const QString lang,const QString &term);
 private:
   void read_(const QString &filename);
-  QVariantList translate(const QString &query,
-                         const QVector<QByteArray> &dict_A,
-                         const QVector<QByteArray> &dict_B,
-                         const QMultiHash<QByteArray, int> &map_A) const;
+  struct dbDescr {
+    QString name;
+    QString lang1;
+    QString lang2;
+  };
+  QVector<dbDescr> dicts;
+  QString dbName="cacchetta"; //"sailbabelDB";
+  QString dictDbName(QString lang_A,QString lang_B);
 public:
   int size() const;
-  bool dictEmpty(){return dict_A.empty() || dict_B.empty();}
-  Q_INVOKABLE QVariantList translateAtoB(const QString &query) const;
-  Q_INVOKABLE QVariantList translateBtoA(const QString &query) const;
-  virtual ~dictionary() {}
+  int progress() const;
+  QStringList getLangs() {QStringList ret; ret<<QString("asd1")<<QString("asd2"); return ret;}
+  virtual ~dictionary() {if (db.open()) db.close();}
+  QVariant data(const QModelIndex &index, int role) const {
+      if(role < Qt::UserRole) {
+         return QSqlQueryModel::data(index, role);
+      }
+      QSqlRecord r = record(index.row());
+      return r.value(QString(_roleNames->value(role))).toString();
+   }
+  inline QHash<int, QByteArray> roleNames() const { return *_roleNames; }
+  void updateModel(QString dbname,QString condition);
 signals:
   void sizeChanged();
-  void dictChanged();
   void readingFinished();
   void readingError();
 public slots:

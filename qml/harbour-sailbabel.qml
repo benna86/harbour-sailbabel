@@ -49,14 +49,14 @@ ApplicationWindow {
   }
 
   ListModel {
-    id: resultsListModel
+      id :dictionaries
   }
 
   property string dictionaryFile
 
   property string queryFieldText:  ""
 
-  initialPage: Component { ChooseDictionary { } }
+  initialPage: Component { MainPage { } }
   cover: Qt.resolvedUrl("cover/CoverPage.qml")
   allowedOrientations: Orientation.All
   _defaultPageOrientations: Orientation.All
