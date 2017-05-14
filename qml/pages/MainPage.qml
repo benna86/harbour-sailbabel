@@ -84,11 +84,14 @@ Page {
                     id: langId
                     width: main_page.width
                     label: "Language"
-
-                    menu: ContextMenu {
-                        MenuItem { text: "EN-ES" }
-                        MenuItem { text: "ES-EN" }
-                        MenuItem { text: "IT-EN" }
+                    menu:
+                        ContextMenu{
+                        Repeater {
+                            model: dictionary.langs
+                            MenuItem {
+                                text: modelData
+                            }
+                        }
                     }
         }
         TextField {
@@ -96,7 +99,6 @@ Page {
           anchors.top: pageHeader.bottom
           width: parent.width
           text: queryFieldText
-          focus: true
           placeholderText: qsTr("Word or phrase")
           inputMethodHints: Qt.ImhNoAutoUppercase
                     //EnterKey.enabled: text.length>0
@@ -112,9 +114,6 @@ Page {
                         }
           }
         }
-                onActiveFocusChanged: {
-                    console.log("focus")
-                }
         Text {
           id: no_results
           anchors.top: queryField.bottom
@@ -234,9 +233,7 @@ Page {
     property string pageTitle: ""
 
     function eraseDB(){
-        dictionary.eraseDB("ES-EN");  //TODO
-//        dictionary.initDB("ES-EN"); //TODO
+        dictionary.eraseDB(""); //TODO
         dictionary.clear()
-        pageTitle="No dictionary loaded"
     }
 }

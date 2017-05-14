@@ -57,6 +57,7 @@ dictionary::dictionary(QSqlQueryModel *parent) : QSqlQueryModel(parent) {
                 dbdesc.lang2=res.toString();
                 dicts.push_back(dbdesc);
             }
+            emit sizeChanged();
         }
     } else {
         qDebug()<<"Impossible to connect to"<<dbName.toLatin1();
@@ -139,7 +140,7 @@ QString dictionary::dictDbName(QString lang_A,QString lang_B){
         qDebug()<<"Found match";
         dbname=it->name;
         // delete previously found dictionary
-        eraseDB(it->name);
+        //eraseDB(it->name);
     } else { //add the new dictionary
         qDebug()<<"Match not found";
         //update vector
@@ -150,7 +151,7 @@ QString dictionary::dictDbName(QString lang_A,QString lang_B){
         newdb.lang2=lang_B;
         qDebug()<<"Inserting "<<newdb.name.toLatin1()<<","<<newdb.lang1.toLatin1()<<","<<newdb.lang2.toLatin1();
         dicts.push_back(newdb);
-        //update db
+        //update list
         QSqlQuery d_ins;
         my_prepare(d_ins,"INSERT INTO dbnames(n, l1, l2) VALUES(:n,:l1,:l2)");
         d_ins.bindValue(":n",newdb.name);
@@ -161,8 +162,9 @@ QString dictionary::dictDbName(QString lang_A,QString lang_B){
         } else {
             qDebug()<<"Cannot update DB: "<<d_ins.lastError().text().toLatin1();
         }
-    }
+        // create tables
     initDB(dbname);
+    }
     return dbname;
 }
 
@@ -350,6 +352,8 @@ void dictionary::eraseDB(QString dbname){
         q.bindValue(0,dbname);
         my_exec(q);
     }
+    emit sizeChanged();
+    //debug
     QStringList asd;
     for(auto &a : dicts){
         asd.push_back(a.name);

@@ -55,12 +55,12 @@ private:
     QString lang2;
   };
   QVector<dbDescr> dicts;
-  QString dbName="cacchetta"; //"sailbabelDB";
+  QString dbName="sailbabelDB";
   QString dictDbName(QString lang_A,QString lang_B);
 public:
   int size() const;
   int progress() const;
-  QStringList getLangs() {QStringList ret; ret<<QString("asd1")<<QString("asd2"); return ret;}
+  QStringList getLangs() {QStringList ret; for(auto a: dicts) {ret<<a.name;} return ret;}
   virtual ~dictionary() {if (db.open()) db.close();}
   QVariant data(const QModelIndex &index, int role) const {
       if(role < Qt::UserRole) {

@@ -56,7 +56,9 @@ ApplicationWindow {
 
   property string queryFieldText:  ""
 
-  initialPage: Component { MainPage { } }
+  property Component firstPage:  Qt.createComponent(dictionary.langs.length>0 ? "pages/MainPage.qml" : "pages/ChooseDictionary.qml");
+
+  initialPage: firstPage
   cover: Qt.resolvedUrl("cover/CoverPage.qml")
   allowedOrientations: Orientation.All
   _defaultPageOrientations: Orientation.All
