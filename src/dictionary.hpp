@@ -13,6 +13,7 @@
 #include <QSqlRecord>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSortFilterProxyModel>
 
 class dictionary;
 class dictionaryloader;
@@ -29,7 +30,9 @@ class dictionary : public QSqlQueryModel {
   int dicProgress;
   int max_num_results=200;
   friend class dictionaryloader;
+  friend class sortingalgorithm;
   QHash<int,QByteArray> *_roleNames;
+  QString lastTerm;
 
 public:
   Q_PROPERTY(int size READ size NOTIFY sizeChanged)
@@ -94,6 +97,22 @@ public slots:
 signals:
   void finished();
   void error(QString err);
+};
+
+//---------------------------------------------------------------------
+class sortingalgorithm : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    sortingalgorithm(dictionary *parent = 0);
+    void setQuery(QString q){query=q;}
+
+protected:
+    bool lessThan(const QModelIndex &left, const QModelIndex &right) const;
+
+private:
+    QString query;
 };
 
 #endif // DICTIONARY_HPP

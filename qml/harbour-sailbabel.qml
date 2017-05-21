@@ -34,15 +34,16 @@ import harbour.sailbabel.qmlcomponents 1.0
 import "pages"
 
 ApplicationWindow {
-
-  Dictionary {
-    id: dictionary
-    onReadingFinished: {
-      pageStack.replace("pages/MainPage.qml")
-      pageStack.pushAttached("pages/History.qml")
+    Connections {
+        target: dictionary
+        onReadingFinished: {
+            pageStack.replace("pages/MainPage.qml")
+            pageStack.pushAttached("pages/History.qml")
+        }
+        onReadingError: pageStack.replace("pages/Error.qml")
     }
-    onReadingError: pageStack.replace("pages/Error.qml")
-  }
+
+    }
 
   ListModel {
     id: searchHistoryListModel

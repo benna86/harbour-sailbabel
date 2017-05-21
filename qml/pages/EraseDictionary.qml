@@ -8,7 +8,7 @@ Dialog {
         width: parent.width
 
         DialogHeader {
-        title: "Erase which dictionary?"
+        title: qsTr("Erase which dictionary?")
         }
 
         ListView {

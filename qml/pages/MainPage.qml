@@ -82,11 +82,13 @@ Page {
         width: main_page.width
         PageHeader {
           id: pageHeader
-                    title: pageTitle
+                    title: "sailBabel"
                 }
                 ComboBox {
                     id: langId
                     width: main_page.width
+                    anchors.top: pageHeader.top
+                    anchors.topMargin: 17
                     label: "Language"
                     menu:
                         ContextMenu{
@@ -134,7 +136,7 @@ Page {
 
     header: hearderComponent
 
-        model :dictionary
+        model :dictproxy
 
     delegate: ListItem {
       width: main_page.width
@@ -233,6 +235,4 @@ Page {
       }
     }
   }
-
-    property string pageTitle: ""
 }

@@ -15,6 +15,7 @@ dictionary::dictionary(QSqlQueryModel *parent) : QSqlQueryModel(parent) {
     _roleNames->insert(Qt::UserRole + 1,  QByteArray("definition2"));
     dicSize=0;
     dicProgress=0;
+    lastTerm="";
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(dbName); // contains the list of language-specific databases
     if ( db.open ( )) {
@@ -127,6 +128,7 @@ void dictionary::read(const QString &filename) {
 }
 
 void dictionary::search(const QString dbname,const QString &term) {
+    lastTerm=purify(term);
     updateModel(dbname,term);
 }
 
@@ -431,6 +433,47 @@ void dictionaryloader::process() {
   catch (...) {
     emit error("unable to read dictionary");
   }
+}
+
+sortingalgorithm::sortingalgorithm(dictionary *parent)
+    : QSortFilterProxyModel(parent) {
+    this->setSourceModel( parent );
+    this->sort(0, Qt::DescendingOrder);
+}
+
+bool sortingalgorithm::lessThan(const QModelIndex &left,
+                                const QModelIndex &right) const
+{
+    QStringList terms=QStringList()<<QString(sourceModel()->data(left).toString())<<QString(sourceModel()->data(right).toString());
+    QStringList q_list=dynamic_cast<dictionary*>(sourceModel())->lastTerm.split(' ', QString::SkipEmptyParts);
+    std::vector<int> scores;
+    scores.resize(2);
+    // compute score of both
+    std::transform(terms.begin(),terms.end(),scores.begin(),[q_list](QString term){
+        QString prefix=q_list[0];
+        int score=0;
+        if (term.startsWith(prefix)) {
+            score+=6;
+            if (QString(term).toCaseFolded().contains(QRegularExpression("^"+prefix+"\\S")))
+                score-=2;
+        } else if (term.contains(prefix))
+            score+=3;
+        for (int k=1; k<q_list.size(); ++k) {
+            prefix+=" ";
+            prefix+=q_list[k];
+            if (term.startsWith(prefix))
+                score+=6;
+            else if (term.contains(prefix))
+                score+=3;
+        }
+        // additional points if there is an exact match
+        if (term==prefix)
+            score+=2;
+        // prefer short terms
+        score-=term.count(" ");
+        return score;
+    });
+    return scores[0]<scores[1];
 }
 
 void my_prepare(QSqlQuery &q, QString s){

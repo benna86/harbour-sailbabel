@@ -24,6 +24,13 @@
     </message>
 </context>
 <context>
+    <name>EraseDictionary</name>
+    <message>
+        <source>Erase which dictionary?</source>
+        <translation>Erase which dictionary?</translation>
+    </message>
+</context>
+<context>
     <name>Error</name>
     <message>
         <source>_error_description_</source>
@@ -70,12 +77,12 @@
 <context>
     <name>MainPage</name>
     <message>
-        <source>Change dictionary</source>
-        <translation>Change dictionary</translation>
+        <source>Erase Dictionary</source>
+        <translation>Erase Dictionary</translation>
     </message>
     <message>
-        <source>Dictionary</source>
-        <translation>Dictionary</translation>
+        <source>Import Dictionary</source>
+        <translation>Import Dictionary</translation>
     </message>
     <message>
         <source>Word or phrase</source>
