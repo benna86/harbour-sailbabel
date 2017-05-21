@@ -48,16 +48,20 @@ Page {
         text: qsTr("About SailBabel")
         onClicked: pageStack.push(Qt.resolvedUrl("About.qml"))
       }
-            RemorsePopup { id: remorse_erase }
       MenuItem {
                 text: qsTr("Erase Dictionary")
-                onClicked: remorse_erase.execute(qsTr("Erasing database"),
-                                                 function() {
+                onClicked: {
+                    var dialog = pageStack.push(Qt.resolvedUrl("EraseDictionary.qml"),
+                                                {"choice": ""})
+                    dialog.accepted.connect(function() {
+                        console.log("Erasing: "+dialog.choice)
                                                      dictionary.clear()
                                                      dictionaries.clear()
                                                      queryFieldText=""
-                                                     eraseDB()
+                        dictionary.eraseDB(dialog.choice);
+                        dictionary.clear()
                                                  })
+            }
             }
             MenuItem {
                 text: qsTr("Import Dictionary")
@@ -96,7 +100,7 @@ Page {
         }
         TextField {
           id: queryField
-          anchors.top: pageHeader.bottom
+                    anchors.top: langId.bottom
           width: parent.width
           text: queryFieldText
           placeholderText: qsTr("Word or phrase")
@@ -231,9 +235,4 @@ Page {
   }
 
     property string pageTitle: ""
-
-    function eraseDB(){
-        dictionary.eraseDB(""); //TODO
-        dictionary.clear()
-    }
 }
